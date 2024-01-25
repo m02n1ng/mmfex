@@ -25,12 +25,15 @@ s = 2 # number of states considered in FRENKEL
 total_s = 5 #number of computed roots
 number_coup = int(scipy.special.comb(total_s + total_s, 2))
 
+#collect the coupling terms
 # C = [A][A_start][A_end][B][B_start][B_end]
 C = np.zeros((A, s, s, A, s, s))
 
+#collect the energy terms
 # E = [number of monomers][number of states]
 E = np.zeros((A, s))
 
+#collect the transition dipole moments to compute spectroscopic properties
 # TDM = [A, total number of states in RASSCF start, total number of states in RASSCF end, space component]
 TDM = np.zeros((A,total_s, total_s, 3))
 TOT_TDM = int(scipy.special.comb(total_s, 2))
@@ -38,8 +41,10 @@ TOT_TDM = int(scipy.special.comb(total_s, 2))
 # define the parsing keyword
 key = "VNN_AB"
 
-#all the files are into the current work directory
+#all the files must be into the current work directory
 source = os.getcwd()
+
+#      DATA COLLECTION
 
 #the cycle starts here
 for i in range(m, n+1): 
@@ -106,6 +111,7 @@ for i in range(m, n+1):
     except:
      pass
    #end for q
+	  
   # TDM COLLECTION: note it is upper triangular
    jline = 0
    for q in range(iline, len(output)):  ###step for TDMs
@@ -480,11 +486,6 @@ for i in range(1, N):
  L += deltaE_eV + '\t' + mux + '      ' + muy + '      ' + muz + '      ' + f + '\n'
 out.writelines(L)
 out.write("\n\n\n")
-
-
-
-
-
 out.close()
 
 
