@@ -27,6 +27,7 @@ number_coup = int(scipy.special.comb(total_s + total_s, 2))
 
 #variable that collects the coupling terms
 # C = [A][A_state_start][A_state_end][B][B_state_start][B_state_end]
+# A will go from 0 to 26
 C = np.zeros((A, s, s, A, s, s))
 
 #variable that collects the energy terms
@@ -38,24 +39,24 @@ E = np.zeros((A, s))
 TDM = np.zeros((A,total_s, total_s, 3))
 TOT_TDM = int(scipy.special.comb(total_s, 2))
 
-# define the parsing keyword
+# define the parsing keyword based on OpenMolcas_CPL_Parallel
 key = "VNN_AB"
 
-#all the files must be into the current work directory
+#all the files must be into the current work directory organised in folders. Each folder has the output for a dimeric calculation
 source = os.getcwd()
 
-#      DATA COLLECTION
+#     DATA COLLECTION
 
 #the cycle starts here
-for i in range(m, n+1): 
+for i in range(m, n+1): #m = 301; n+1 = 328
  alfa = str(i)
- for j in range(i+1, n+1):
+ for j in range(i+1, n+1): 		# i+1 = 302; n+1 = 328. consider the dimeric interaction in an upper-trinagular fashion.
   beta = str(j)
 # define the destination directory for the files
-  dest = os.path.join(source,'coup_'+alfa+'_'+beta)
-# define the path for the output file
-  out = os.path.join(dest, 'coupling_'+alfa+'_'+beta+'.out')
-# go to the parsing keyword
+#  dest = os.path.join(source,'coup_'+alfa+'_'+beta)
+# define the path for the output file; coup_'+alfa+'_'+beta is the specific name given to the files and folders.
+  out = os.path.join(source,'coup_'+alfa+'_'+beta, 'coupling_'+alfa+'_'+beta+'.out')
+# open the output file
   with open(out, "r") as F:
    output = F.readlines()
 
@@ -63,34 +64,27 @@ for i in range(m, n+1):
  
 #find the line number of the keyword 
   iline = 0
-  for k  in range(len(output),0, -1):
+  for k  in range(len(output)-1,0, -1): 	#goes from the bottom to the top 
    try:
     if output[k].split()[0] == key:
-     iline = k
+     iline = k					#iline is placed at the key word.
      break
    except:
     pass
-  for l in range(1, number_coup + 1):
-   line = output[iline + l].split() 
-   indeces = re.split('\(|\)', line[0])
+  for l in range(1, number_coup + 1):	
+   line = output[iline + l].split() 	#takes the iline and splits it: ['<(001)B(001)A|v|(001)B(001)A>', '=', '-0.10072418E-01']
+   indeces = re.split('\(|\)', line[0]) #takes the first space and split it at brakets: ['<', '001', 'B', '001', 'A|v|', '001', 'B', '001', 'A>']
    A_start = int(indeces[7])
    A_end = int(indeces[3])
    B_start = int(indeces[5])
    B_end = int(indeces[1])
    if (A_start <= s) and (A_end <= s) and (B_start <= s) and (B_end <= s):
-    C[i - m][A_start - 1][A_end - 1][j - m][B_start - 1][B_end - 1] = float(line[2]) # upper triangular
-#    if (i-m == 15) and (j-m == 25):
-#      print(line)
-#      print("A_start - 1 = %i" %(A_start - 1))
-#      print("A_end - 1 = %i" %(A_end - 1))
-#      print("B_start - 1 = %i" %(B_start - 1))
-#      print("B_end - 1 = %i" %(B_end - 1))
-#      print("{:e}".format(C[i - m][A_start - 1][A_end - 1][j - m][B_start - 1][B_end - 1]))
-
+    C[i - m][A_start - 1][A_end - 1][j - m][B_start - 1][B_end - 1] = float(line[2]) # upper triangular; the monomers goes from 0(301) to 26(327), same for states (from 0 to s-1)
+	  
 
   #ENERGY COLLECTION
   
-  if i == m: #collect the energies only from the first monomer interaction term
+  if i == m: #collect the energies only from the interaction with the first monomer
    
    Esa = 0
    Esb = 0
@@ -99,47 +93,37 @@ for i in range(m, n+1):
      if output[q].split()[0] == "states":
       if output[q].split()[1] == "1":
        if Esb < s:
-        E[j-m][Esb] = float(output[q].split()[2])
+        E[j-m][Esb] = float(output[q].split()[2])		#collect the state (from 0 to s-1) energy for the B monomer (from 1 to 26)
         Esb += 1
-      elif  (output[q].split()[1] == "2") and (j == m + 1):
+      elif  (output[q].split()[1] == "2") and (j == m + 1):	#collect the state (from 0 to s-1) energy for the first monomer only in the first interaction file
        if Esa < s:
         E[i - m][Esa] = float(output[q].split()[2])
         Esa += 1
      elif output[q].split()[0] == "add":
-      iline = q
+      iline = q							#update the iline position after the states energy list
       break
     except:
      pass
-   #end for q
+   #end "for q"
 	  
   # TDM COLLECTION: note it is upper triangular
    jline = 0
-   for q in range(iline, len(output)):  ###step for TDMs
+   for q in range(iline, len(output)):  
     try:
      if output[q].split()[0] == "Dip1:":
-#      jline = q + 1
       jline = q
-#      print(jline)
       break
     except:
      pass  
    TDM_s_start = 0
    TDM_s_end = 1
-   #print(jline)
-   for q in range(jline + 1, len(output)):
-#    print(output[q])
-    if output[q].split()[0] == "Dip2:":
+   for q in range(jline + 1, len(output)): 		#scroll downside collecting the TDM components for the B monomer (j - m)
+    if output[q].split()[0] == "Dip2:":			#TDM for first monomer that we want to collect just once
      jline = q
      TDM_s_start = 0
      TDM_s_end = 1
      break
-#    if TDM_s_end == TDM_s_start:
-#     TDM[j-m][TDM_s_start][TDM_s_end][0] = 0.0
-#     TDM[j-m][TDM_s_start][TDM_s_end][1] = 0.0
-#     TDM[j-m][TDM_s_start][TDM_s_end][2] = 0.0
-#     TDM_s_end += 1
-#    elif TDM_s_end != TDM_s_start:
-    else:
+    else:						#collection of the TDM for the m+1 monomers for all the states considered in RASSI
      x_comp = output[q].split()[0]
      y_comp = output[q].split()[1]
      z_comp = output[q].split()[2]
@@ -151,14 +135,8 @@ for i in range(m, n+1):
       TDM_s_start += 1
       TDM_s_end = TDM_s_start + 1
    #end for cycle
-   if (j == m + 1):
+   if (j == m + 1):					#collection of the TDM components for m (301) monomer just once
     for q in range(jline + 1, jline + 1 + TOT_TDM):
-#     if TDM_s_end == TDM_s_start:
-#      TDM[i-m][TDM_s_start][TDM_s_end][0] = 0.0
-#      TDM[i-m][TDM_s_start][TDM_s_end][1] = 0.0
-#      TDM[i-m][TDM_s_start][TDM_s_end][2] = 0.0
-#      TDM_s_end += 1
-#     elif TDM_s_end != TDM_s_start:
       x_comp = output[q].split()[0]
       y_comp = output[q].split()[1]
       z_comp = output[q].split()[2]
@@ -171,26 +149,7 @@ for i in range(m, n+1):
        TDM_s_end = TDM_s_start + 1
 
 
-#print(TDM[26][0][1][:])
-#TDM[1][0][1][:] = - TDM[1][0][1][:]
-#TDM[8][0][1][:] = - TDM[8][0][1][:]
-#TDM[9][0][1][:] = - TDM[9][0][1][:]
-#TDM[11][0][1][:] = - TDM[11][0][1][:]
-#TDM[12][0][1][:] = - TDM[12][0][1][:]
-#TDM[13][0][1][:] = - TDM[13][0][1][:]
-#TDM[15][0][1][:] = - TDM[15][0][1][:]
-#TDM[17][0][1][:] = - TDM[17][0][1][:]
-#TDM[19][0][1][:] = - TDM[19][0][1][:]
-#TDM[20][0][1][:] = - TDM[20][0][1][:]
-#TDM[25][0][1][:] = - TDM[25][0][1][:]
-#TDM[26][0][1][:] = - TDM[26][0][1][:]
-#print(TDM[26][0][1][:])
-#print("{:e}".format(C[15][1][0][25][0][1]))
-
-#print(TDM)
-#print("")
-#print(TDM[0][0][0][0])
-#exit()
+###### END OF COLLECTION SECTION ######################
 
 #aggregate ground state
 Eg0 = 0.0
@@ -199,14 +158,14 @@ for i in range(0, A):
  for j in range(i, A):
   Eg0 = Eg0 + C[i][0][0][j][0][0]   	#sum all the couplings gg,gg between monomer i and all the other j-th,
      				#since C is upper triangular, there is not double counting
- 
-#######		FRENKEL-DAVYDOV 	#############
-#number of aggregate states
 
+
+############ FRENKEL-DAVYDOV #############
+#number of aggregate states
 N = (A * (s -1)) + 1
 
 #Frankel matrix 
-#F[A, state of A, B, state of B]
+#F[A, states of A, B, state of B]
 F = np.zeros(( N, N ))
 
 #DIAGONAL ASSIST-VARIABLE
@@ -277,20 +236,15 @@ for i in range(0, N ):
 
 #END FRENKEL MATRIX it is in Hartree 
 
-#print(F) 
-#print(F*27.211369917461)
-
 #DEFINE THE ENERGY DIFFERENCE F - Eg0 in Hartree
 
 F_del = (F) - (np.diag(np.ones(N)*Eg0))
 
-#print(F_del*27.211369917461)
 
 # DIAGONALISATION of F_del
 eigenvalues, eigenvectors = LA.eigh(F_del,UPLO='U')
 eigenvalues= eigenvalues - eigenvalues[0] # HERE THE ENERGY IS STILL IN HARTREE, eigenvalues[0] refers to the energy of the ground state that must be zero
 					   #They are the exciton transitions from the ground state to the higher states 
-#print(eigenvalues*27.211369917461)
 
 
 #************** EXCITON'S SPECTRAL PROPERTIES SECTION ******************
