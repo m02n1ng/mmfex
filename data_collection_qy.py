@@ -25,15 +25,15 @@ s = 2 # number of states considered in FRENKEL
 total_s = 5 #number of computed roots
 number_coup = int(scipy.special.comb(total_s + total_s, 2))
 
-#collect the coupling terms
-# C = [A][A_start][A_end][B][B_start][B_end]
+#variable that collects the coupling terms
+# C = [A][A_state_start][A_state_end][B][B_state_start][B_state_end]
 C = np.zeros((A, s, s, A, s, s))
 
-#collect the energy terms
-# E = [number of monomers][number of states]
+#variable that collects the energy terms
+# E = [A][A_state]
 E = np.zeros((A, s))
 
-#collect the transition dipole moments to compute spectroscopic properties
+#variable that collects the transition dipole moments to compute spectroscopic properties
 # TDM = [A, total number of states in RASSCF start, total number of states in RASSCF end, space component]
 TDM = np.zeros((A,total_s, total_s, 3))
 TOT_TDM = int(scipy.special.comb(total_s, 2))
