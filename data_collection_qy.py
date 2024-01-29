@@ -150,6 +150,7 @@ for i in range(m, n+1): #m = 301; n+1 = 328
 
 
 ###### END OF COLLECTION SECTION ######################
+#C and TDM are upper triangular matrices
 
 #aggregate ground state
 Eg0 = 0.0
@@ -170,38 +171,38 @@ F = np.zeros(( N, N ))
 
 #DIAGONAL ASSIST-VARIABLE
 agg_s = 1
-ENA = 0 #the monomer which excites
+ENA = 0 	#this is a variable that counts the excited monomer in the diagonal terms
 agg_s_end = 1
-CA = 0
+CA = 0		#
 diff = 2
 a = range(0, A)
 p = 0
 pp = 0
 ppp = 0
 w = 1
-
-
 sss_start = 1
 sss_end = 1
 
 for i in range(0, N ):
  for j in range(0, N ):
-  if i == j: #DIAGONAL TERMS 
-   if i == 0:
+  if i == j: 		#DIAGONAL TERMS 
+   if i == 0:		# here we have just the energy of the aggregate ground state Eg0
     F[i][j] = Eg0
-   else:
-    F[i][j] = Eg0 - E[ENA][0] + E[ENA][agg_s]
+   else:			
+"""
+here we have the excitation of the ENA-th monomer, each time i == j, agg_s increases i.e. the excitation of the same monomer to the agg_s-th state.
+when agg_s == s, we change monomer ENA += 1 and agg_s in re-initialised to 1
+"""
+	F[i][j] = Eg0 - E[ENA][0] + E[ENA][agg_s]
     for M in range(0, A):
      F[i][j] +=  C[ENA][agg_s][agg_s][M][0][0] + C[M][0][0][ENA][agg_s][agg_s] - C[ENA][0][0][M][0][0] - C[M][0][0][ENA][0][0]
-     #again we want double sums because the Cmn wants m higher than n
+     # we want double counting: C[ENA][agg_s][agg_s][M][0][0] + C[M][0][0][ENA][agg_s][agg_s]; because the Cmn wants n higher than m otherwise it's zero.
     agg_s += 1
     if agg_s >= s:
      agg_s = 1
      ENA += 1
-#    if ENA >= A:
-#     print('LOL')
-  #end if diagonal
-  elif (i == 0) and (j > 0): #FIRST ROW OFF DIAGONAL TERMS
+  #end of diagonal terms  
+  elif (i == 0) and (j > 0): #FIRST ROW OFF DIAGONAL TERMS, ground state excitations
    for M in range(0, A):
     F[i][j] +=  C[CA][0][agg_s_end][M][0][0] + C[M][0][0][CA][0][agg_s_end]
    agg_s_end += 1
@@ -235,6 +236,8 @@ for i in range(0, N ):
       w = ppp + 1
 
 #END FRENKEL MATRIX it is in Hartree 
+
+
 
 #DEFINE THE ENERGY DIFFERENCE F - Eg0 in Hartree
 
