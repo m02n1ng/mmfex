@@ -177,8 +177,6 @@ CA = 0		#
 diff = 2
 a = range(0, A)
 p = 0
-pp = 0
-ppp = 0
 w = 1
 sss_start = 1
 sss_end = 1
@@ -215,8 +213,8 @@ when agg_s == s, we change monomer ENA += 1 and agg_s in re-initialised to 1
     agg_s_end = 1
   #end if first row  
   elif (i > 0) and (j > i):
-   F[i][j] = C[a[ppp]][sss_start][0][a[w]][0][sss_end]
-#   if (a[ppp] == 15) and (a[w] == 25):
+   F[i][j] = C[a[p]][sss_start][0][a[w]][0][sss_end]
+#   if (a[p] == 15) and (a[w] == 25):
 #     print(F[i][j]) 
 #     print("sss_start = %i" %(sss_start))
 #     print("sss_end = %i" %(sss_end))
@@ -228,12 +226,12 @@ when agg_s == s, we change monomer ENA += 1 and agg_s in re-initialised to 1
     if (w >= A):
      sss_start += 1
      sss_end += 1
-     w = ppp + 1
+     w = p + 1
      if sss_start >= s:
-      ppp += 1
+      p += 1
       sss_start = 1
       sss_end = 1
-      w = ppp + 1
+      w = p + 1
 
 #END FRENKEL MATRIX it is in Hartree 
 
