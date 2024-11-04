@@ -290,25 +290,25 @@ TDMz = np.zeros(( N, N ))
 #		X AXIS	
 
 for i in range(0, N):
-	for j in range(0,N):
-		if i == j:
-			TDMx[i][j] = float(0)
-		elif i == 0:
-			TDMx[i][j] = float(TDM[MON][0][s_end][0])
-			s_end += 1
-			if s_end >= s: 
-				MON += 1
-				s_end = 1
-				if MON >= A:
-					MON = 0
-		elif j == 0:
-			TDMx[i][j] = float(TDM[MON][0][s_end][0])
-			s_end += 1
-			if s_end >= s:
-				MON += 1
-				s_end = 1
-				if MON >= A:
-					MON = 0
+    for j in range(0,N):
+        if i == j:
+            TDMx[i][j] = float(0)
+        elif i == 0:
+            TDMx[i][j] = float(TDM[MON][0][s_end][0])
+            s_end += 1
+            if s_end >= s: 
+                MON += 1
+                s_end = 1
+                if MON >= A:
+                    MON = 0
+        elif j == 0:
+            TDMx[i][j] = float(TDM[MON][0][s_end][0])
+            s_end += 1
+            if s_end >= s:
+                MON += 1
+                s_end = 1
+                if MON >= A:
+                    MON = 0
 #		elif i < s:
 #			MON = 0
 #			TDMx[i][j] = TDM[MON][i][j][0] 

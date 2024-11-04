@@ -46,19 +46,19 @@ for i in range(m, n+1):
  alfa = str(i)
  for j in range(i+1, n+1):
   beta = str(j)
-# define the destination directory for the files
+  # define the destination directory for the files
   dest = os.path.join(source,'coup_'+alfa+'_'+beta)
-# define the path for the output file
+  # define the path for the output file
   out = os.path.join(dest, 'coupling_'+alfa+'_'+beta+'.out')
-# go to the parsing keyword
+  # go to the parsing keyword
   with open(out, "r") as F:
    output = F.readlines()
 
- #COUPLING TERMS COLLECTION
+  #COUPLING TERMS COLLECTION
  
-#find the line number of the keyword 
+  #find the line number of the keyword 
   iline = 0
-  for k  in range(len(output),0, -1): # searches from the end of the output file
+  for k in range(len(output),0, -1): # searches from the end of the output file
    try:
     if output[k].split() == key:
      iline = k
@@ -75,14 +75,6 @@ for i in range(m, n+1):
    B_end = int(indeces[1])
    if (A_start <= s) and (A_end <= s) and (B_start <= s) and (B_end <= s):
     C[i - m][A_start - 1][A_end - 1][j - m][B_start - 1][B_end - 1] = float(line[2]) # upper triangular
-#    if (i-m == 15) and (j-m == 25):
-#      print(line)
-#      print("A_start - 1 = %i" %(A_start - 1))
-#      print("A_end - 1 = %i" %(A_end - 1))
-#      print("B_start - 1 = %i" %(B_start - 1))
-#      print("B_end - 1 = %i" %(B_end - 1))
-#      print("{:e}".format(C[i - m][A_start - 1][A_end - 1][j - m][B_start - 1][B_end - 1]))
-
 
   #ENERGY COLLECTION
   
@@ -107,36 +99,20 @@ for i in range(m, n+1):
     except:
      pass
    #end for q
-  # TDM COLLECTION: note it is upper triangular
+
+   # TDM COLLECTION: note it is upper triangular
    jline = 0
    for q in range(iline, len(output)):  ###step for TDMs
     try:
-#     if output[q].split()[0] == "Dip1:":
      if (output[q].split()[0] == "Transition") and (output[q].split()[5] == "1:"): # Transition dipole vectors of system 1:
-#      jline = q + 1
       jline = q
-#      print(jline)
       break
     except:
      pass  
-#   TDM_s_start = 0
-#   TDM_s_end = 1
-   #print(jline)
-#   for q in range(jline + 1, len(output)):
    for q in range(jline + 2, len(output)):
-#    print(output[q])
-#    if output[q].split()[0] == "Dip2:":
     if (output[q].split()[0] == "Transition") and (output[q].split()[5] == "2:"): # Transition dipole vectors of system 2:
      jline = q
-#     TDM_s_start = 0
-#     TDM_s_end = 1
      break
-#    if TDM_s_end == TDM_s_start:
-#     TDM[j-m][TDM_s_start][TDM_s_end][0] = 0.0
-#     TDM[j-m][TDM_s_start][TDM_s_end][1] = 0.0
-#     TDM[j-m][TDM_s_start][TDM_s_end][2] = 0.0
-#     TDM_s_end += 1
-#    elif TDM_s_end != TDM_s_start:
     else:
      TDM_comps = output[q].split() # from    to          x                    y                    z
      TDM_s_start = int(TDM_comps[0]) - 1
@@ -147,20 +123,8 @@ for i in range(m, n+1):
      TDM[j-m][TDM_s_start][TDM_s_end][0] = x_comp
      TDM[j-m][TDM_s_start][TDM_s_end][1] = y_comp
      TDM[j-m][TDM_s_start][TDM_s_end][2] = z_comp
-#     TDM_s_end += 1
-#     if TDM_s_end == total_s: 
-#      TDM_s_start += 1
-#      TDM_s_end = TDM_s_start + 1
-   #end for cycle
    if (j == m + 1):
-#    for q in range(jline + 1, jline + 1 + TOT_TDM):
     for q in range(jline + 2, jline + 2 + TOT_TDM):
-#     if TDM_s_end == TDM_s_start:
-#      TDM[i-m][TDM_s_start][TDM_s_end][0] = 0.0
-#      TDM[i-m][TDM_s_start][TDM_s_end][1] = 0.0
-#      TDM[i-m][TDM_s_start][TDM_s_end][2] = 0.0
-#      TDM_s_end += 1
-#     elif TDM_s_end != TDM_s_start:
       TDM_comps = output[q].split() # from    to          x                    y                    z
       TDM_s_start = int(TDM_comps[0]) - 1
       TDM_s_end   = int(TDM_comps[1]) - 1
@@ -170,32 +134,6 @@ for i in range(m, n+1):
       TDM[i-m][TDM_s_start][TDM_s_end][0] = x_comp
       TDM[i-m][TDM_s_start][TDM_s_end][1] = y_comp
       TDM[i-m][TDM_s_start][TDM_s_end][2] = z_comp
-#      TDM_s_end += 1
-#      if TDM_s_end == total_s:
-#       TDM_s_start += 1
-#       TDM_s_end = TDM_s_start + 1
-
-
-#print(TDM[26][0][1][:])
-#TDM[1][0][1][:] = - TDM[1][0][1][:]
-#TDM[8][0][1][:] = - TDM[8][0][1][:]
-#TDM[9][0][1][:] = - TDM[9][0][1][:]
-#TDM[11][0][1][:] = - TDM[11][0][1][:]
-#TDM[12][0][1][:] = - TDM[12][0][1][:]
-#TDM[13][0][1][:] = - TDM[13][0][1][:]
-#TDM[15][0][1][:] = - TDM[15][0][1][:]
-#TDM[17][0][1][:] = - TDM[17][0][1][:]
-#TDM[19][0][1][:] = - TDM[19][0][1][:]
-#TDM[20][0][1][:] = - TDM[20][0][1][:]
-#TDM[25][0][1][:] = - TDM[25][0][1][:]
-#TDM[26][0][1][:] = - TDM[26][0][1][:]
-#print(TDM[26][0][1][:])
-#print("{:e}".format(C[15][1][0][25][0][1]))
-
-#print(TDM)
-#print("")
-#print(TDM[0][0][0][0])
-#exit()
 
 #aggregate ground state
 Eg0 = 0.0
