@@ -4,12 +4,15 @@ from scipy.special import comb
 from numpy import linalg as LA
 import numpy as np
 import os
+import re
 
 def collect(first_monomer: int, 
             last_monomer: int, 
             computed_roots: int, 
             wanted_roots: int, 
-            source = os.getcwd()):
+            source = os.getcwd(),
+            key = ['Excitonic', 'couplings', 'section:']
+            ):
     """
     Collect the results of Quantum Chemistry calculations from the OpenMolcas Software. It is specific for the building
     of Frenkel-Davydov Hamiltonian.
@@ -78,8 +81,6 @@ def collect(first_monomer: int,
     TDM = np.zeros((A,total_s, total_s, 3))
     TOT_TDM = int(comb(total_s, 2))
 
-    key = ['Excitonic', 'couplings', 'section:']
-
     # The cycle starts here
     for i in range(m, n+1): 
         alfa = str(i)
@@ -105,9 +106,10 @@ def collect(first_monomer: int,
                         break
                 except:
                     pass
-            iline += 4 # adds four lines before the start of the couplings
+            print(iline)
+            #iline += 4 # adds four lines before the start of the couplings; only for new versions of Openmolcas
             for l in range(1, number_coup + 1):
-                line = output[iline + l].split() 
+                line = output[iline + l].split()
                 indeces = re.split(r'\(|\)', line[0])
                 A_start = int(indeces[7])
                 A_end = int(indeces[3])
