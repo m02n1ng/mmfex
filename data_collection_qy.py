@@ -161,16 +161,31 @@ for i in range(m, n+1): #m = 301; n+1 = 328
 #  C and TDM are upper triangular matrices
 
 #aggregate ground state
-Eg0 = 0.0
-for i in range(0, A):
- Eg0 += E[i][0]			#sum all the ground states of the monomers
- for j in range(i, A):
-  """
+#Eg0 = 0.0
+#for i in range(0, A):
+# Eg0 += E[i][0]			#sum all the ground states of the monomers
+# for j in range(i, A):
+#  Eg0 += C[i][0][0][j][0][0]
+
+Eg0 = sum(E[i][0] for i in range(A))
+"""
   sum all the couplings gg,gg between monomer i and all the other j-th,
   since C is upper triangular, there isn't double counting
-  """
-  Eg0 += C[i][0][0][j][0][0]
+"""
+Eg0 += sum(C[i][0][0][j][0][0] for i in range(A) for j in range(i, A))
 
+
+# Helper function for computing diagonal energy terms
+def compute_diagonal_energy(ENA, agg_s):
+    energy = Eg0 - E[ENA][0] + E[ENA][agg_s]
+    for M in range(A):
+        energy += (
+            C[ENA][agg_s][agg_s][M][0][0] + C[M][0][0][ENA][agg_s][agg_s]
+            - C[ENA][0][0][M][0][0] - C[M][0][0][ENA][0][0]
+ # we want double counting: C[ENA][agg_s][agg_s][M][0][0] + C[M][0][0][ENA][agg_s][agg_s]; 
+ # because the Cmn wants n higher than m otherwise it's zero.
+        )
+    return energy
 
 ############ FRENKEL-DAVYDOV #############
 
@@ -192,6 +207,16 @@ p = 0
 w = 1
 sss_start = 1
 sss_end = 1
+
+
+
+
+#new variables
+ENA = 0
+agg_s = 1
+CA = 0
+agg_s_end = 1
+
 
 for i in range(0, N ):
  for j in range(0, N ):
@@ -216,32 +241,25 @@ for i in range(0, N ):
   #end of diagonal terms  
   
   elif (i == 0) and (j > 0): #FIRST ROW OFF DIAGONAL TERMS, ground state excitations
-   for M in range(0, A):
-    F[i][j] +=  C[CA][0][agg_s_end][M][0][0] + C[M][0][0][CA][0][agg_s_end]
-   agg_s_end += 1
-   if agg_s_end >= s:
-    agg_s_end = 1
-    CA += 1
-   if CA >= A:
-    CA = 0
-    agg_s_end = 1
+    F[i][j]  = sum(
+       C[CA][0][agg_s_end][M][0][0] + C[M][0][0][CA][0][agg_s_end] for M in range(A)
+   )
+    agg_s_end += 1
+    if agg_s_end >= s:
+     agg_s_end = 1
+     CA += 1
+     if CA >= A:
+      CA = 0
+      agg_s_end = 1
   #end if first row
 
   elif (i > 0) and (j > i):
-   F[i][j] = C[a[p]][sss_start][0][a[w]][0][sss_end]
-   sss_end += 1
-   if sss_end >= s:
-    w += 1
-    sss_end = 1
-    if (w >= A):
-     sss_start += 1
-     sss_end += 1
-     w = p + 1
-     if sss_start >= s:
-      p += 1
-      sss_start = 1
-      sss_end = 1
-      w = p + 1
+   p = (i - 1) // (s - 1)
+   sss_start = (i - 1) % (s - 1) + 1
+   w = (j - 1) // (s - 1)
+   sss_end = (j - 1) % (s - 1) + 1
+   F[i][j] = C[p][sss_start][0][w][0][sss_end]
+
 
 #END FRENKEL MATRIX it is in Hartree 
 
