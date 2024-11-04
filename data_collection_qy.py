@@ -14,28 +14,36 @@ def delta(a, b):
  elif a != b:
   return 0
 
-
+# GIVE THE PARAMETERS
 m = 301 #first monomer
 n = 327 #last monomer
+total_s = 5 #number of computed roots
+s = 2 # number of states considered in FRENKEL e.g. 2 states for Qy band
 
+
+# COMPUTE SOME STUFF
 A = n - m + 1 # number of molecules 
 B = n - m #number of molecules minus one 
-s = 2 # number of states considered in FRENKEL
-
-total_s = 5 #number of computed roots
 number_coup = int(scipy.special.comb(total_s + total_s, 2))
 
-#variable that collects the coupling terms
-# C = [A][A_state_start][A_state_end][B][B_state_start][B_state_end]
-# A will go from 0 to 26
+"""
+variable that collects the coupling terms. Ordering:
+  C = [Mol_i][Mol_i_state_start][Mol_i_state_end][Mol_j][Mol_j_state_start][Mol_j_state_end]
+Mol_i goes from 0 to A-1
+"""
 C = np.zeros((A, s, s, A, s, s))
 
-#variable that collects the energy terms
-# E = [A][A_state]
+"""
+variable that collects the energy terms. Ordering:
+  E = [Mol_i][Mol_i_state]
+Mol_i goes from 0 to A-1
+"""
 E = np.zeros((A, s))
 
-#variable that collects the transition dipole moments to compute spectroscopic properties
-# TDM = [A, total number of states in RASSCF start, total number of states in RASSCF end, space component]
+"""
+variable that collects the transition dipole moments (TDM) to compute spectroscopic properties. Ordering:
+  TDM = [Mol_i, Mol_i_state_start, Mol_i_state_end, space components (x,y,z)]
+"""
 TDM = np.zeros((A,total_s, total_s, 3))
 TOT_TDM = int(scipy.special.comb(total_s, 2))
 
@@ -150,18 +158,22 @@ for i in range(m, n+1): #m = 301; n+1 = 328
 
 
 ###### END OF COLLECTION SECTION ######################
-#C and TDM are upper triangular matrices
+#  C and TDM are upper triangular matrices
 
 #aggregate ground state
 Eg0 = 0.0
 for i in range(0, A):
- Eg0 = Eg0 + E[i][0]			#sum all the ground states of the monomers
+ Eg0 += E[i][0]			#sum all the ground states of the monomers
  for j in range(i, A):
-  Eg0 = Eg0 + C[i][0][0][j][0][0]   	#sum all the couplings gg,gg between monomer i and all the other j-th,
-     				#since C is upper triangular, there is not double counting
+  """
+  sum all the couplings gg,gg between monomer i and all the other j-th,
+  since C is upper triangular, there isn't double counting
+  """
+  Eg0 += C[i][0][0][j][0][0]
 
 
 ############ FRENKEL-DAVYDOV #############
+
 #number of aggregate states
 N = (A * (s -1)) + 1
 
@@ -192,6 +204,9 @@ for i in range(0, N ):
     when agg_s == s, we change monomer ENA += 1 and agg_s in re-initialised to 1
     """
     F[i][j] = Eg0 - E[ENA][0] + E[ENA][agg_s]
+    """
+    Add all the coupling terms eg|eg between the ENA-th monomer and all the other monomers, removing the gg|gg terms for each M
+    """
     for M in range(0, A):
      F[i][j] +=  C[ENA][agg_s][agg_s][M][0][0] + C[M][0][0][ENA][agg_s][agg_s] - C[ENA][0][0][M][0][0] - C[M][0][0][ENA][0][0]
      # we want double counting: C[ENA][agg_s][agg_s][M][0][0] + C[M][0][0][ENA][agg_s][agg_s]; because the Cmn wants n higher than m otherwise it's zero.    agg_s += 1
@@ -199,6 +214,7 @@ for i in range(0, N ):
       agg_s = 1
       ENA += 1
   #end of diagonal terms  
+  
   elif (i == 0) and (j > 0): #FIRST ROW OFF DIAGONAL TERMS, ground state excitations
    for M in range(0, A):
     F[i][j] +=  C[CA][0][agg_s_end][M][0][0] + C[M][0][0][CA][0][agg_s_end]
@@ -207,17 +223,12 @@ for i in range(0, N ):
     agg_s_end = 1
     CA += 1
    if CA >= A:
-#    print('LOL')
     CA = 0
     agg_s_end = 1
-  #end if first row  
+  #end if first row
+
   elif (i > 0) and (j > i):
    F[i][j] = C[a[p]][sss_start][0][a[w]][0][sss_end]
-#   if (a[p] == 15) and (a[w] == 25):
-#     print(F[i][j]) 
-#     print("sss_start = %i" %(sss_start))
-#     print("sss_end = %i" %(sss_end))
-#     print()
    sss_end += 1
    if sss_end >= s:
     w += 1
@@ -241,10 +252,9 @@ for i in range(0, N ):
 F_del = (F) - (np.diag(np.ones(N)*Eg0))
 
 
-# DIAGONALISATION of F_del
+# DIAGONALISATION of F_del, HERE THE ENERGY IS STILL IN HARTREE.
 eigenvalues, eigenvectors = LA.eigh(F_del,UPLO='U')
-eigenvalues= eigenvalues - eigenvalues[0] # HERE THE ENERGY IS STILL IN HARTREE, eigenvalues[0] refers to the energy of the ground state that must be zero
-					   #They are the exciton transitions from the ground state to the higher states 
+eigenvalues= eigenvalues - eigenvalues[0] # shift of ground excitonic state to zero
 
 
 #************** EXCITON'S SPECTRAL PROPERTIES SECTION ******************
