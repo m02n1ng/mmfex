@@ -1,0 +1,13 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='m-mfex',
+    version=1.0,
+    author='Roberto Cacciari',
+    author_email='cacciari.roberto@phd.unipd.it',
+    packages=find_packages(),
+    url='https://github.com/m02n1ng/M-MFex.git',
+    install_requires=['numpy==2.1.3',
+                      'scipy==1.14.1'
+                     ]
+)
