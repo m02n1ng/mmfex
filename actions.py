@@ -3,8 +3,8 @@
 from scipy.special import comb
 from numpy import linalg as LA
 import numpy as np
-import os
 import re
+import os
 
 def collect(first_monomer: int, 
             last_monomer: int, 
@@ -109,7 +109,6 @@ def collect(first_monomer: int,
                         break
                 except:
                     pass
-            print(iline)
             iline += 4 # adds four lines before the start of the couplings; only for new versions of Openmolcas
             for l in range(1, number_coup + 1):
                 line = output[iline + l].split()
@@ -285,10 +284,10 @@ def build(E: np.ndarray,
     F_Ha_del = (F_Ha) - (np.diag(np.ones(N) * np.min(F_Ha)))
 
     return F_Ha_del
-    
 
-def compute(F: np.ndarray,
+def compute(Frenkel: np.ndarray,
             TDM: np.ndarray,
+            printed_output: bool = False
             ):
     """
     Compute the physical properties of an excitonic system.
@@ -324,9 +323,9 @@ def compute(F: np.ndarray,
 
     
     A = TDM.shape[0]
-    N = F.shape[0]
+    N = Frenkel.shape[0]
     s = int(1 + ((N - 1)/A))
-    eigenvalues, eigenvectors = LA.eigh(F,UPLO='U')
+    eigenvalues, eigenvectors = LA.eigh(Frenkel,UPLO='U')
     eigenvalues= eigenvalues - eigenvalues[0]
     
     MON = 0
@@ -420,14 +419,67 @@ def compute(F: np.ndarray,
     f = np.zeros(N-1) #oscillator strength
     S_n = 1
     for i in range(0, N-1):
-        f[i] = (2/3)*float(eigenvalues[S_n])*((float(TDM_EXC[0][S_n][0]))**2 + (float(TDM_EXC[0][S_n][1]))**2 +(float(TDM_EXC[0][S_n][2]))**2)  
+        f[i] = (2/3)*float(eigenvalues[S_n]) * ((float(TDM_EXC[0][S_n][0]))**2 + (float(TDM_EXC[0][S_n][1]))**2 +(float(TDM_EXC[0][S_n][2]))**2)  
         S_n += 1
-    return eigenvalues, eigenvectors, f, TDM_EXC
 
+    if printed_output == True:
+        import time
+        moment = time.strftime("%d_%b_%H:%M",time.localtime())
+        outputFileName = "frenkel_#.out"
+        outputFileName = outputFileName.replace("#", moment)
+
+        with open(outputFileName, "w") as file:
+            file.write("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=\n\n")
+            file.write("          FRENKEL-DAVIDOV EXCITON            \n\n")
+            file.write("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=\n\n\n")
+            file.write("=> The Frenkel Matrix computed for your system considering "+str(s)+" states is\n\n")
+            L = []
+            for i in range(0,N):
+                for j in range(0, N):
+                    #L.append("{:.4e}".format(Frenkel[i][j])  + '\t')
+                    L.append(f"{Frenkel[i][j]:<14.4e}")
+                L .append("\n") 
+            file.writelines(L)
+            file.write("\n")
+            file.write("please, notice that the energies have same units of the starting Frenkel matrix.")
+            file.write("\n")
+            file.write("=> The diagonalisation process returns the following eigenvalues and eigenvectors \n\n")
+            file.write("Eigenvalues: \n")
+            L = []
+            for i in range(0,N):
+                #L.append(str(round(eigenvalues[i],4)).ljust(10) )
+                L.append(f"{eigenvalues[i]:<14.4e}")
+            file.writelines(L)
+            file.write("\n\n")
+            file.write("Eigenvectors: \n")
+            L = []
+            for i in range(0,N):
+                for j in range(0, N):
+                    #L.append(str(round(eigenvectors[i][j],4)).ljust(10))
+                    L.append(f"{eigenvectors[i][j]:<14.4e}")
+                L.append("\n")
+            file.writelines(L)
+            file.write("\n\n\n")
+            file.write("=> For each exciton transition we can define the TDM and the oscillator strength \n\n")
+            file.write(f"{'DeltaE':<15}{'mux (a.u.)':<12}{'muy (a.u.)':<12}{'muz (a.u.)':<12}{'Oscillator Strength':<20}\n\n")
+            L = []
+            for i in range(1, N):
+                deltaE_eV = f"{round(eigenvalues[i], 3):<15}"
+                mux = f"{round(TDM_EXC[0][i][0], 5):<12}"
+                muy = f"{round(TDM_EXC[0][i][1], 5):<12}"
+                muz = f"{round(TDM_EXC[0][i][2], 5):<12}"
+                osc = f"{round(f[i - 1], 5):<20}"
+                # Append the formatted row to the lines list
+                L.append(f"{deltaE_eV}{mux}{muy}{muz}{osc}\n")
+            file.writelines(L)
+            # Write the final newlines
+            file.write("\n")
+    
+    return eigenvalues, eigenvectors, f, TDM_EXC
 
 def get_spectrum(E: np.array, 
                  f: np.array,
-                 sigma: float = 0.0272,
+                 sigma: float = 0.0272, #the sigma parameter must be adjusted according to the unit of measurement
                  ):
     """
     Compute a spectrum by applying a Gaussian function to the excitation energies.
@@ -466,6 +518,7 @@ def get_spectrum(E: np.array,
     for i in range(0,len(E)):
         spectrum += (f[i]/sigma) * np.exp(-((xaxis-E[i])**2)/(sigma**2))
     spectrum_out = spectrum/np.max(spectrum)
+
     return xaxis, spectrum_out
             
 
