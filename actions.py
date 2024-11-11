@@ -14,11 +14,12 @@ def collect(first_monomer: int,
             key = ['Excitonic', 'couplings', 'section:']
             ):
     """
-    Collect the results of Quantum Chemistry calculations from the OpenMolcas Software. It is specific for the building
-    of Frenkel-Davydov Hamiltonian.
+    Collect the results of Quantum Chemistry calculations from the OpenMolcas Software. It is specific for the building of Frenkel-Davydov Hamiltonian. 
+    All the coupling outputs must be in the same directory and they have name "'coup_'+alpha+'_'+beta" where alpha and beta are the monomer indices. 
+    The output files must have the name "'coupling_'+alfa+'_'+beta+'.out'".
 
-    Args:
-    -----
+    Parameters
+    ----------
     first_monomer: int
         lowest index of the monomers
 
@@ -31,21 +32,23 @@ def collect(first_monomer: int,
     wanted_roots: int
         number of roots to include in the calculation per monomer
 
-    Returns:
-    --------
+    Returns
+    -------
+    Returns a tuple with the following terms:
+
     C : np.ndarray
-        triangular matrix of coupling terms with form:
-            C = [Mol_i][Mol_i_state_start][Mol_i_state_end][Mol_j][Mol_j_state_start][Mol_j_state_end]
+        triangular tensor of coupling terms with form:
+        C = [Mol_i][Mol_i_state_start][Mol_i_state_end][Mol_j][Mol_j_state_start][Mol_j_state_end]
         Mol_i goes from 0 to the number of molecules.
 
     E : np.ndarray
         matrix of monomeric energies, with form:
-            E = [Mol_i][Mol_i_state]
+        E = [Mol_i][Mol_i_state]
         Mol_i goes from 0 to the number of molecules.
 
     TDM : np.ndarray
-        matrix of transition dipole moments, with form:
-            TDM = [Mol_i][Mol_i_state_start][Mol_i_state_end][space components (x,y,z)]
+        tensor of transition dipole moments, with form:
+        TDM = [Mol_i][Mol_i_state_start][Mol_i_state_end][space components (x,y,z)]
         Mol_i goes from 0 to the number of molecules.
 
     """
@@ -107,7 +110,7 @@ def collect(first_monomer: int,
                 except:
                     pass
             print(iline)
-            #iline += 4 # adds four lines before the start of the couplings; only for new versions of Openmolcas
+            iline += 4 # adds four lines before the start of the couplings; only for new versions of Openmolcas
             for l in range(1, number_coup + 1):
                 line = output[iline + l].split()
                 indeces = re.split(r'\(|\)', line[0])
@@ -178,12 +181,39 @@ def collect(first_monomer: int,
     return C, E, TDM
  
 def build(E: np.ndarray,
-          C: np.ndarray
+          C: np.ndarray,
+          units: str = 'Hartree'
           ):
+    """
+    Build a Frenkel-Davydov Hamiltonian from the monomeric energies and coupling terms.
+
+    Parameters
+    ----------
+
+    E : np.ndarray
+        matrix of monomeric energies, with form:
+        E = [Mol_i][Mol_i_state]
+        Mol_i goes from 0 to the number of molecules.
+
+    C : np.ndarray
+        triangular tensor of coupling terms with form:
+        C = [Mol_i][Mol_i_state_start][Mol_i_state_end][Mol_j][Mol_j_state_start][Mol_j_state_end]
+        Mol_i goes from 0 to the number of molecules.
     
+    units: str = 'Hartree'
+        specify the unit of the energies. It can be 'Hartree' or 'eV'.
+
+    Returns
+    -------
+    Returns a a matrix:
+
+    F_Ha : np.ndarray
+        Frenkel-Davydov Hamiltonian matrix in Hartree or eV.
+
+    """
+        
     A = E.shape[0] #number of monomers
     s = E.shape[1] # number of states considered in FRENKEL
-
     #define aggregate ground state
     Eg0 = sum(E[i][0] for i in range(A))
     Eg0 += sum(C[i][0][0][j][0][0] for i in range(A) for j in range(i, A))
@@ -246,20 +276,57 @@ def build(E: np.ndarray,
                             )
                 else:  # Intermolecular coupling between different molecules
                     F_Ha[i][j] = C[p][sss_start][0][w][0][sss_end]
+    
+    if units == 'eV':
+        F_Ha = F_Ha * 27.2114
+    
+    #create the hermitian matrix
+    F_Ha = F_Ha - np.diag(np.diag(F_Ha)) + np.transpose(np.conj(F_Ha)) 
+    F_Ha_del = (F_Ha) - (np.diag(np.ones(N) * np.min(F_Ha)))
 
-    return F_Ha
+    return F_Ha_del
+    
 
-def compute(F_Ha: np.ndarray,
+def compute(F: np.ndarray,
             TDM: np.ndarray,
             ):
+    """
+    Compute the physical properties of an excitonic system.
+
+    Parameters
+    ----------
+    F : np.ndarray
+        Frenkel-Davydov Hamiltonian matrix in Hartree or eV.
+    
+    TDM : np.ndarray
+        tensor of transition dipole moments, with form:
+        TDM = [Mol_i][Mol_i_state_start][Mol_i_state_end][space components (x,y,z)]
+        Mol_i goes from 0 to the number of molecules.
+
+    Returns
+    -------
+    Returns a tuple with the following terms:
+
+    eigenvalues : np.ndarray
+        array of eigenvalues of the Frenkel-Davydov Hamiltonian. The unit is the same as the input Hamiltonian.
+
+    eigenvectors : np.ndarray
+        array of eigenvectors of the Frenkel-Davydov Hamiltonian.
+    
+    f : np.ndarray
+        array of oscillator strengths of the excitonic transitions only from the ground state to the excited states.
+    
+    TDM_EXC : np.ndarray
+        tensor of transition dipole moments of the excitonic transitions, with form:
+        TDM_EXC = np.zeros((N, N, 3))
+        N is the number of states considered in the FRENKEL Hamiltonian.
+    """
+
     
     A = TDM.shape[0]
-    N = (A * (s -1)) + 1
-
-    N = F_Ha.shape[0]
+    N = F.shape[0]
     s = int(1 + ((N - 1)/A))
-    F_Ha_del = (F_Ha) - (np.diag(np.ones(N) * np.min(F_Ha)))
-    eigenvalues, eigenvectors = LA.eigh(F_Ha_del,UPLO='U')
+    eigenvalues, eigenvectors = LA.eigh(F,UPLO='U')
     eigenvalues= eigenvalues - eigenvalues[0]
     
     MON = 0
@@ -350,11 +417,56 @@ def compute(F_Ha: np.ndarray,
             TDM_EXC[i][j][1] = float(TDM_exc_y[i][j])
             TDM_EXC[i][j][2] = float(TDM_exc_z[i][j])
 
-    f = np.zeros(N-1)
+    f = np.zeros(N-1) #oscillator strength
     S_n = 1
     for i in range(0, N-1):
         f[i] = (2/3)*float(eigenvalues[S_n])*((float(TDM_EXC[0][S_n][0]))**2 + (float(TDM_EXC[0][S_n][1]))**2 +(float(TDM_EXC[0][S_n][2]))**2)  
         S_n += 1
+    return eigenvalues, eigenvectors, f, TDM_EXC
+
+
+def get_spectrum(E: np.array, 
+                 f: np.array,
+                 sigma: float = 0.0272,
+                 ):
+    """
+    Compute a spectrum by applying a Gaussian function to the excitation energies.
+
+    Parameters
+    ----------
+
+    E : np.ndarray
+        array of excitation energies.
+    
+    f : np.ndarray
+        array of oscillator strengths of the excitonic transitions only from the ground state to the excited states.
+    
+    sigma : float = 0.0272
+        standard deviation of the Gaussian function.
+
+    Returns
+    -------
+    Returns a tuple with the following terms:
+
+    xaxis : np.ndarray
+        x axis of the spectrum in units of energy. The unit is the same as the input energies.
+    
+    spectrum_out : np.ndarray
+        y axis of the spectrum normalised to the maximum value. It is in arbitrary units.
+
+    """
+    if E[0] == 0:
+        E = E[1:]
+    
+    E_min = np.min(E)
+    E_max = np.max(E)
+    xaxis = np.linspace(E_min-(3.5*sigma), 
+                        E_max+(3.5*sigma), 1000)
+    spectrum = 0
+    for i in range(0,len(E)):
+        spectrum += (f[i]/sigma) * np.exp(-((xaxis-E[i])**2)/(sigma**2))
+    spectrum_out = spectrum/np.max(spectrum)
+    return xaxis, spectrum_out
             
 
 
