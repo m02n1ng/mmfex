@@ -480,6 +480,7 @@ def compute(Frenkel: np.ndarray,
 def get_spectrum(E: np.array, 
                  f: np.array,
                  sigma: float = 0.0272, #the sigma parameter must be adjusted according to the unit of measurement
+                 csv: bool = False
                  ):
     """
     Compute a spectrum by applying a Gaussian function to the excitation energies.
@@ -518,6 +519,17 @@ def get_spectrum(E: np.array,
     for i in range(0,len(E)):
         spectrum += (f[i]/sigma) * np.exp(-((xaxis-E[i])**2)/(sigma**2))
     spectrum_out = spectrum/np.max(spectrum)
+
+    if csv == True:
+        import csv
+        with open("spectrum.csv", "w") as f:
+            writer = csv.writer(f)
+            field = ["eV", "Absorbance"]
+
+            writer.writerow(field)
+            for i in range(0,len(xaxis)):
+                row = [xaxis[i], spectrum_out[i]]
+                writer.writerow(row)
 
     return xaxis, spectrum_out
             

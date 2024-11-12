@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='m-mfex',
+    name='mmfex',
     version=1.0,
     author='Roberto Cacciari',
     author_email='cacciari.roberto@phd.unipd.it',

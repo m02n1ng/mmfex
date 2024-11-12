@@ -44,15 +44,20 @@ The package can be used also without any installation, if the module `actions` i
 
 ## User Guide
 
-#### 1. Create a directory `mother_directory` that will contains all the couplings subdirectories
-Once created the folder, copy all the _**insert here files needed to run couplings**_ files of all the monomers. It is important that the monomer data have a prograssive labeling.  
-Then one can run the _**insert name of the code that creates and run couplings inputs**_ to automatically create the subdirectories and run the OpenMolcas couplings inputs.
+#### 1. Create a directory `mother_directory` that contains all the couplings subdirectories
+Once created the folder, copy all the `.xyz` and the `.JobMix` files of all the monomers inside the `mother_directory`. Please notice that the script works correctly only if the monomer data are named `mon_<PROGRESSIVE NUMBER>.xyz` and `mon_<PROGRESSIVE NUMBER>.JobMix`. It is important that the monomer data have a progressive labeling.  
+Copy also an input script for the coupling named `coupling.input`.  
+
+Then one can run the script `coupling_script.py` to automatically create the subdirectories and run the OpenMolcas couplings inputs. 
 
 #### 2. Check the end of the calculations
-_**THERE SHOULD BE AN INPUT FILE MADE BY LUCA**_
+To have an update of the calculations use the script `check_completition.py`.
 
 #### 3. Elaborate the data
-Within the `mother_directory`, one can use the `actions` module to extract the data and build the Frenkel-Davydov Hamiltonian. See the `testing`folder for an example.
+Once all the coupling calculations are ended one can use the package to calculate the Frenkel Hamiltonian.  
+Within the `mother_directory`, use the `actions` module to extract the data and build the Frenkel-Davydov Hamiltonian. See the `testing`folder for some examples.
+
+If the `setup.py` has not been installed, use the `mmfex_gen.py` to generate an output file with the excitonic properties of the system. To make it work copy and paste the `actions` module inside `mother_directory` to make it available.
 
 
 
