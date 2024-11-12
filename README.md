@@ -6,7 +6,7 @@ The package uses OpenMolcas (v24.06 tag: 12-g13ccb99e8) outputs to create a Fren
 
 ## Installation Guide
 
-It is suggested to create a virtual environment by using `venv` or `conda` (python v3.13.0).
+It is suggested to create a virtual environment using `venv` or `conda` (python v3.13.0).
 
 ### `venv`
 * Git Clone the repository running
