@@ -57,7 +57,7 @@ To have an update of the calculations use the script `check_completition.py`.
 Once all the coupling calculations are ended one can use the package to calculate the Frenkel Hamiltonian.  
 Within the `mother_directory`, use the `actions` module to extract the data and build the Frenkel-Davydov Hamiltonian. See the `testing`folder for some examples.
 
-If the `setup.py` has not been installed, use the `mmfex_gen.py` to generate an output file with the excitonic properties of the system. To make it work copy and paste the `actions` module inside `mother_directory` to make it available.
+If the `setup.py` has not been installed, use the `mmfex_gen.py` to generate an output file with the excitonic properties of the system. To make it work, copy and paste the `actions` module inside `mother_directory` to make it available.
 
 
 
