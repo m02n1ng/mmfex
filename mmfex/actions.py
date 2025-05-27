@@ -11,6 +11,7 @@ def collect(first_monomer: int,
             computed_roots: int, 
             wanted_roots: int, 
             source = os.getcwd(),
+            custom_names = None,
             key = ['Excitonic', 'couplings', 'section:']
             ):
     """
@@ -53,15 +54,19 @@ def collect(first_monomer: int,
 
     """
 
-    
-    m = first_monomer #first monomer
-    n = last_monomer #last monomer
+    if custom_names == None:
+        m = first_monomer #first monomer
+        n = last_monomer #last monomer
+        A = n - m + 1 # number of molecules
+        molecules_list = list(range(m, n + 1)) # list of molecules
+
+    if custom_names != None:
+        A = len(custom_names) # number of molecules
+        molecules_list = custom_names
+
     total_s = computed_roots #number of computed roots
     s = wanted_roots # number of states considered in FRENKEL e.g. 2 states for Qy band
-
-    A = n - m + 1 # number of molecules
     number_coup = int(comb(total_s + total_s, 2))
-
 
     """
     variable that collects the coupling terms. Ordering:
@@ -85,10 +90,11 @@ def collect(first_monomer: int,
     TOT_TDM = int(comb(total_s, 2))
 
     # The cycle starts here
-    for i in range(m, n+1): 
-        alfa = str(i)
-        for j in range(i+1, n+1):
-            beta = str(j)
+    for i in range(A): 
+        alfa = str(molecules_list[i]) # monomer index
+        for j in range(i+1, A): # j starts from i+1 to avoid double counting
+            beta = str(molecules_list[j]) # monomer index
+            
             #define the destination directory for the files
             dest = os.path.join(source,'coup_'+alfa+'_'+beta)
             #define the path for the output file
@@ -118,9 +124,9 @@ def collect(first_monomer: int,
                 B_start = int(indeces[5])
                 B_end = int(indeces[1])
                 if (A_start <= s) and (A_end <= s) and (B_start <= s) and (B_end <= s):
-                    C[i - m][A_start - 1][A_end - 1][j - m][B_start - 1][B_end - 1] = float(line[2]) # upper triangular
+                    C[i][A_start - 1][A_end - 1][j][B_start - 1][B_end - 1] = float(line[2]) # upper triangular
 
-            if i == m: #collect the energies and TDM only from the first monomer interaction term
+            if i == 0: #collect the energies and TDM only from the first monomer interaction term
 
                 #ENERGY COLLECTION
                 Esa = 0
@@ -130,11 +136,11 @@ def collect(first_monomer: int,
                         if output[q].split()[0] == "State":
                             if output[q].split()[4] == "1":
                                 if Esb < s:
-                                    E[j-m][Esb] = float(output[q].split()[5])
+                                    E[j][Esb] = float(output[q].split()[5])
                                     Esb += 1
-                            elif  (output[q].split()[4] == "2") and (j == m + 1):
+                            elif  (output[q].split()[4] == "2") and (j == 1):
                                 if Esa < s:
-                                    E[i - m][Esa] = float(output[q].split()[5])
+                                    E[i][Esa] = float(output[q].split()[5])
                                     Esa += 1
                         elif output[q].split()[0] == "Frenkel":
                             iline = q
@@ -162,10 +168,10 @@ def collect(first_monomer: int,
                         x_comp      = float(TDM_comps[2])
                         y_comp      = float(TDM_comps[3])
                         z_comp      = float(TDM_comps[4])
-                        TDM[j-m][TDM_s_start][TDM_s_end][0] = x_comp
-                        TDM[j-m][TDM_s_start][TDM_s_end][1] = y_comp
-                        TDM[j-m][TDM_s_start][TDM_s_end][2] = z_comp
-                if (j == m + 1):
+                        TDM[j][TDM_s_start][TDM_s_end][0] = x_comp
+                        TDM[j][TDM_s_start][TDM_s_end][1] = y_comp
+                        TDM[j][TDM_s_start][TDM_s_end][2] = z_comp
+                if (j == 1):
                     for q in range(jline + 2, jline + 2 + TOT_TDM):
                         TDM_comps = output[q].split()
                         TDM_s_start = int(TDM_comps[0]) - 1
@@ -173,9 +179,9 @@ def collect(first_monomer: int,
                         x_comp      = float(TDM_comps[2])
                         y_comp      = float(TDM_comps[3])
                         z_comp      = float(TDM_comps[4])
-                        TDM[i-m][TDM_s_start][TDM_s_end][0] = x_comp
-                        TDM[i-m][TDM_s_start][TDM_s_end][1] = y_comp
-                        TDM[i-m][TDM_s_start][TDM_s_end][2] = z_comp
+                        TDM[i][TDM_s_start][TDM_s_end][0] = x_comp
+                        TDM[i][TDM_s_start][TDM_s_end][1] = y_comp
+                        TDM[i][TDM_s_start][TDM_s_end][2] = z_comp
 
     return C, E, TDM
  
