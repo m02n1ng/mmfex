@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from actions import *
-import csv
+# from mmfex.actions import *
 
 m = <INITIAL MONOMER>
 n = <LAST MONOMER>
-sigma = <TYPE NUMBER HERE> # standard deviation of the gaussian function for the spectrum
+sigma = <TYPE NUMBER HERE>  # width of the gaussian for the spectrum, in eV;
+                            # sqrt(2) times the standard deviation, FWHM ~ 1.665*sigma
 
 total_roots = <TYPE NUMBER HERE> # total number of states used in the CASSCF calculation;
 dim = <TYPE NUMBER HERE> # number of states considered in the Frenkel Hamiltonian per monomer;
@@ -21,6 +22,7 @@ Frenkel = build(E=E,
 
 eigenvalues, eigenvectors, oscillators, TDM_EXC = compute(Frenkel=Frenkel,
                                                           TDM=TDM,
+                                                          units='eV',
                                                           printed_output=True)
 
 x, y = get_spectrum(eigenvalues,
