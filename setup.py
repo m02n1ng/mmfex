@@ -8,6 +8,7 @@ setup(
     packages=find_packages(),
     url='https://github.com/m02n1ng/mmfex.git',
     description='Frenkel-Davydov exciton Hamiltonian from OpenMolcas outputs',
+    license='LGPL-2.1-or-later',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     python_requires='>=3.10',
