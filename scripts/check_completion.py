@@ -37,9 +37,11 @@ else:
   i = -1
   #queu = ['batch-l', 'long-l', 'pcomp-h', 'pcomp-l']
   #n = len(queu)
-  runningjobs = subprocess.Popen('squeue -h -o "%20j" -u devicol', shell=True, stdout=subprocess.PIPE,stderr=subprocess.DEVNULL, text=True).communicate()[0].split()
+  runningjobs = subprocess.Popen('squeue -h -o "%20j" -u $USER', shell=True, stdout=subprocess.PIPE,stderr=subprocess.DEVNULL, text=True).communicate()[0].split()
   for dirs in fails:
-    tocheck = 'coupling_' + dirs.split('/')[-1][-7:]
+    # tocheck = 'coupling_' + dirs.split('/')[-1][-7:]
+    folder = os.path.basename(dirs)                  # e.g. 'coup_301_302'
+    tocheck = folder.replace('coup_', 'coupling_', 1)
     if (tocheck in runningjobs): # the job is still running
       print(tocheck + ' is still running or in the queue')
     else:

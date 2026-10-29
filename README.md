@@ -54,9 +54,9 @@ The package can be used also without any installation, if the module `actions` i
 
 #### 1. Create a directory `mother_directory` that contains all the couplings subdirectories
 Once created the folder, copy all the `.xyz` and the `.JobMix` files of all the monomers inside the `mother_directory`. Please notice that the script works correctly only if the monomer data are named `mon_<PROGRESSIVE NUMBER>.xyz` and `mon_<PROGRESSIVE NUMBER>.JobMix`. It is important that the monomer data have a progressive labeling.  
-Copy also an input script for the coupling named `coupling.input`.  
+Copy also an Openmolcas input script for the coupling named `coupling.input`.  
 
-Then one can run the script `coupling_script.py` to automatically create the subdirectories and run the OpenMolcas couplings inputs. 
+Then one can run the script `coupling_script.py` to automatically create the subdirectories and run the OpenMolcas couplings inputs (notice that the jobs will run in parallel). 
 
 #### 2. Check the end of the calculations
 To have an update of the calculations use the script `check_completion.py`.
