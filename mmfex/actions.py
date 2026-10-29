@@ -498,7 +498,8 @@ def get_spectrum(E: np.array,
                  csv: bool = False
                  ):
     """
-    Compute a spectrum by applying a Gaussian function to the excitation energies.
+    Compute a spectrum by broadening the excitation energies with Gaussians
+    of the form exp(-(x - E)**2 / sigma**2).
 
     Parameters
     ----------
@@ -510,7 +511,8 @@ def get_spectrum(E: np.array,
         array of oscillator strengths of the excitonic transitions only from the ground state to the excited states.
     
     sigma : float = 0.0272
-        standard deviation of the Gaussian function.
+        width parameter of the Gaussian, in the same units as E. Note that it is
+        sqrt(2) times the standard deviation, and FWHM = 2*sqrt(ln 2)*sigma ~ 1.665*sigma.
 
     Returns
     -------
@@ -547,14 +549,3 @@ def get_spectrum(E: np.array,
                 writer.writerow(row)
 
     return xaxis, spectrum_out
-            
-
-
-
-
-
-
-
-
-
-
