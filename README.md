@@ -69,8 +69,8 @@ If the `setup.py` has not been installed, use the `mmfex_gen.py` to generate an 
 
 ## How to cite
 
-If you use M-MFEx in your work, please cite it. Citation metadata is in
-[`CITATION.cff`](CITATION.cff), and GitHub's "Cite this repository" button
-generates BibTeX and APA entries from it.
+M-MFEx is described in a forthcoming OpenMolcas publication. Citation details
+will be added here upon publication. In the meantime, citation metadata for the
+software is in [`CITATION.cff`](CITATION.cff).
 
 
