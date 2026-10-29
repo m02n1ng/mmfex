@@ -293,7 +293,8 @@ def build(E: np.ndarray,
 
 def compute(Frenkel: np.ndarray,
             TDM: np.ndarray,
-            printed_output: bool = False
+            printed_output: bool = False,
+            units: str = 'Hartree'
             ):
     """
     Compute the physical properties of an excitonic system.
@@ -422,11 +423,19 @@ def compute(Frenkel: np.ndarray,
             TDM_EXC[i][j][1] = float(TDM_exc_y[i][j])
             TDM_EXC[i][j][2] = float(TDM_exc_z[i][j])
 
-    f = np.zeros(N-1) #oscillator strength
-    S_n = 1
+    # OSCILLATOR BLOCK
+    if units == 'eV':
+        dE_ha = eigenvalues / 27.211386
+    elif units == 'Hartree':
+        dE_ha = eigenvalues
+    else:
+        raise ValueError("units must be 'Hartree' or 'eV'")
+
+    f = np.zeros(N-1) #oscillator strength (needs excitation energy in Hartree)
     for i in range(0, N-1):
-        f[i] = (2/3)*float(eigenvalues[S_n]) * ((float(TDM_EXC[0][S_n][0]))**2 + (float(TDM_EXC[0][S_n][1]))**2 +(float(TDM_EXC[0][S_n][2]))**2)  
-        S_n += 1
+        S_n = i + 1
+        f[i] = (2/3) * dE_ha[S_n] * np.sum(TDM_EXC[0][S_n]**2)
+
 
     if printed_output == True:
         import time
