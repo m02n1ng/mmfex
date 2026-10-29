@@ -445,7 +445,7 @@ def compute(Frenkel: np.ndarray,
 
         with open(outputFileName, "w") as file:
             file.write("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=\n\n")
-            file.write("          FRENKEL-DAVIDOV EXCITON            \n\n")
+            file.write("          FRENKEL-DAVYDOV EXCITON            \n\n")
             file.write("=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=\n\n\n")
             file.write("=> The Frenkel Matrix computed for your system considering "+str(s)+" states is\n\n")
             L = []
