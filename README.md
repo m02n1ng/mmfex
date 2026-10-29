@@ -67,5 +67,10 @@ Within the `mother_directory`, use the `actions` module to extract the data and 
 
 If the `setup.py` has not been installed, use the `mmfex_gen.py` to generate an output file with the excitonic properties of the system. To make it work, copy and paste the `actions` module inside `mother_directory` to make it available.
 
+## How to cite
+
+If you use M-MFEx in your work, please cite it. Citation metadata is in
+[`CITATION.cff`](CITATION.cff), and GitHub's "Cite this repository" button
+generates BibTeX and APA entries from it.
 
 
