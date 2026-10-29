@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "M-MFEx: Multiconfigurational Hamiltonian for Frenkel Exciton"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Cacciari
+    given-names: Roberto
+    affiliation: "Università degli Studi di Padova"
+    orcid: "https://orcid.org/0000-0001-8290-4297"
+  - family-names: De Vico
+    given-names: Luca
+    email: luca.devico@unisi.it
+    affiliation: "Università degli Studi di Siena"
+    orcid: "https://orcid.org/0000-0002-2821-5711"
+repository-code: "https://github.com/m02n1ng/mmfex"
+license: MIT
+version: 1.0.1
+date-released: "2026-10-29"
